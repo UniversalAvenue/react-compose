@@ -1,0 +1,6 @@
+machine:
+  node:
+    version: 4.1.1
+test:
+  post:
+    - npm run semantic-release || true
