@@ -5,26 +5,8 @@ const _ = require('lodash');
 const compileStylers = require('../index').compileStylers;
 const compilePropers = require('../index').compilePropers;
 const applyFunctor = require('../index').applyFunctor;
+const compose = require('../index').compose;
 
-/*
-
-const React = require('react');
-const TestUtils = require('react-addons-test-utils');
-
-class Wrapper extends React.Component {
-  render() {
-    return <div {...this.props}/>;
-  }
-}
-
-const renderInto = Component => {
-  return TestUtils.renderIntoDocument(<Wrapper><Component /></Wrapper>);
-};
-
-const findTag = (comp, tag) => {
-  return TestUtils.findRenderedDOMComponentWithTag(comp, tag);
-};
-*/
 describe('compileStylers', () => {
   it('should merge stylers', () => {
     const res = compileStylers({
@@ -89,5 +71,43 @@ describe('Apply functor', () => {
       '1': 'beta',
       '2': 'ceta',
     });
+  });
+});
+
+const React = require('react');
+const TestUtils = require('react-addons-test-utils');
+
+class Wrapper extends React.Component {
+  render() {
+    return <div {...this.props}/>;
+  }
+}
+
+const renderInto = Component => {
+  return TestUtils.renderIntoDocument(<Wrapper><Component /></Wrapper>);
+};
+
+const findTag = (comp, tag) => {
+  return TestUtils.findRenderedDOMComponentWithTag(comp, tag);
+};
+
+describe('Compose', () => {
+  const mapPropToStyleFunctor = (propKey, styleKey) => (props) => ({
+    [styleKey]: props[propKey],
+  });
+  it('should produce a valid component', () => {
+    const Compo = compose({ background: 'blue' })({ children: 'boo' }, 'p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'p');
+    expect(para.style.background).toEqual('blue');
+  });
+
+  it('should pass fed props into style functors', () => {
+    const Compo = compose({ background: 'blue' }, mapPropToStyleFunctor('strength', 'fontSize')
+      )({ strength: '400px' }, 'p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'p');
+    expect(para.style.background).toEqual('blue');
+    expect(para.style.fontSize).toEqual('400px');
   });
 });
