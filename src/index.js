@@ -1,5 +1,7 @@
 import _ from 'lodash';
 
+import { composeComponent, exposeContextTypes } from './config';
+
 /**
  * aggregates a set of stylers into a constant part + a dynamic part
  **/
@@ -32,5 +34,38 @@ export const compilePropers = (...args) => {
     constant: mergeObjArr(groupedPropers.false),
     dynamic: groupedPropers.true,
     Component,
+  };
+};
+
+const flatMap = (arr, fn) => {
+  if (_.isArray(arr)) {
+    return _.flattenDeep(_.map(arr, fn));
+  }
+  return fn(arr);
+};
+
+export const applyFunctor = (functor, ...args) => {
+  const reapply = f => applyFunctor.apply(null, [ f, ...args ]);
+  if (_.isArray(functor)) {
+    return flatMap(functor, reapply);
+  }
+  if (_.isFunction(functor)) {
+    return reapply(functor.apply(null, args));
+  }
+  return functor;
+};
+
+export const compose = (...stylers) => (...propers) => {
+  const cs = compileStylers(stylers);
+  const ps = compilePropers(propers);
+
+  return SuperComponent => {
+    const ComposedComponent = ({ styles, ...superProps }, context) => {
+      const _styles = [ cs.constant, ...applyFunctor(cs.dynamic, superProps, context), ...styles ];
+      const _props = [ ps.constant, ...applyFunctor(ps.dynamic, superProps, context), ...superProps ];
+      return composeComponent(SuperComponent, _styles, _props);
+    };
+    ComposedComponent.contextTypes = exposeContextTypes();
+    return ComposedComponent;
   };
 };
