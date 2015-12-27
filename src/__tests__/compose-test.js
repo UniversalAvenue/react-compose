@@ -105,9 +105,10 @@ describe('Compose', () => {
   it('should pass fed props into style functors', () => {
     const Compo = compose({ background: 'blue' }, mapPropToStyleFunctor('strength', 'fontSize')
       )({ strength: '400px' }, 'p');
-    const doc = renderInto(Compo);
+    const doc = renderInto(() => <Compo style={{ color: 'white' }} />);
     const para = findTag(doc, 'p');
     expect(para.style.background).toEqual('blue');
+    expect(para.style.color).toEqual('whiter');
     expect(para.style.fontSize).toEqual('400px');
   });
 });
