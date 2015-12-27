@@ -1,22 +1,36 @@
-import React, { PropTypes } from 'react';
 import _ from 'lodash';
 
-export const injectStyles = (inputStyles) => ({ styles = [], ...props }, theme) => {
-  const apply = foo => _.isFunction(foo) ? foo(props, theme) : foo;
-  const themers = _.flatten(_.map(inputStyles, apply));
-  const _styles = _.flatten([ _.map(themers, apply), styles ]);
+/**
+ * aggregates a set of stylers into a constant part + a dynamic part
+ **/
+
+const mergeObjArr = (arr) => {
+  return _.assign.apply(_, [ {}, ...arr ]);
+};
+
+export const compileStylers = (...stylers) => {
+  const flattened = _.compact(_.flattenDeep(stylers));
+  const constantStyles = _.takeWhile(flattened, st => !_.isFunction(st));
+  const dynamic = _.slice(flattened, constantStyles.length, flattened.length);
+  const constant = mergeObjArr(constantStyles);
   return {
-    styles: _styles,
-    ...props,
+    constant,
+    dynamic,
   };
 };
 
-export default (...input) => Component => {
-  const StyledBase = (props, { theme }) => {
-    return <Component {...injectStyles(input)(props, theme)}/>;
+/**
+ * aggregates a set of propers into a constant part + a dynamic part + Component
+ * The component is always the last argument into the function
+ **/
+
+export const compilePropers = (...args) => {
+  const Component = _.last(args);
+  const propers = _.take(args, args.length - 1);
+  const groupedPropers = _.groupBy(propers, p => _.isFunction(p));
+  return {
+    constant: mergeObjArr(groupedPropers.false),
+    dynamic: groupedPropers.true,
+    Component,
   };
-  StyledBase.contextTypes = {
-    theme: PropTypes.object,
-  };
-  return StyledBase;
 };

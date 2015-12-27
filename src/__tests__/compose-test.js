@@ -1,9 +1,12 @@
 jest.autoMockOff();
 
+const compileStylers = require('../index').compileStylers;
+const compilePropers = require('../index').compilePropers;
+
+/*
+
 const React = require('react');
 const TestUtils = require('react-addons-test-utils');
-
-const compose = require('../index').default;
 
 class Wrapper extends React.Component {
   render() {
@@ -18,11 +21,36 @@ const renderInto = Component => {
 const findTag = (comp, tag) => {
   return TestUtils.findRenderedDOMComponentWithTag(comp, tag);
 };
-describe('Compose', () => {
-  it('should produce a simple p tag', () => {
-    const Component = compose({ background: 'blue' })('p');
-    const comp = renderInto(Component);
-    const p = findTag(comp, 'p');
-    expect(p.props.styles[0].background).toEqual('blue');
+*/
+describe('compileStylers', () => {
+  it('should merge stylers', () => {
+    const res = compileStylers({
+      background: 'blue',
+    }, {
+      color: 'red',
+    }, () => ({ width: 400 }));
+    expect(res.constant).toEqual({
+      background: 'blue',
+      color: 'red',
+    });
+    expect(res.dynamic.length).toEqual(1);
+  });
+});
+describe('compilePropers', () => {
+  it('should merge propers', () => {
+    const res = compilePropers({
+      propA: 'alpha',
+    }, {
+      propB: 2,
+    }, () => ({ width: 400 }),
+    () => ({ width: 400 }),
+    'div'
+    );
+    expect(res.constant).toEqual({
+      propA: 'alpha',
+      propB: 2,
+    });
+    expect(res.dynamic.length).toEqual(2);
+    expect(res.Component).toEqual('div');
   });
 });
