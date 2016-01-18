@@ -2,25 +2,10 @@ jest.autoMockOff();
 
 const _ = require('lodash');
 
-const compileStylers = require('../index').compileStylers;
 const compilePropers = require('../index').compilePropers;
 const applyFunctor = require('../index').applyFunctor;
 const compose = require('../index').compose;
 
-describe('compileStylers', () => {
-  it('should merge stylers', () => {
-    const res = compileStylers({
-      background: 'blue',
-    }, {
-      color: 'red',
-    }, () => ({ width: 400 }));
-    expect(res.constant).toEqual({
-      background: 'blue',
-      color: 'red',
-    });
-    expect(res.dynamic.length).toEqual(1);
-  });
-});
 describe('compilePropers', () => {
   it('should merge propers', () => {
     const res = compilePropers({
@@ -28,15 +13,13 @@ describe('compilePropers', () => {
     }, {
       propB: 2,
     }, () => ({ width: 400 }),
-    () => ({ width: 400 }),
-    'div'
+    () => ({ width: 400 })
     );
     expect(res.constant).toEqual({
       propA: 'alpha',
       propB: 2,
     });
     expect(res.dynamic.length).toEqual(2);
-    expect(res.Component).toEqual('div');
   });
 });
 
@@ -92,23 +75,22 @@ const findTag = (comp, tag) => {
 };
 
 describe('Compose', () => {
-  const mapPropToStyleFunctor = (propKey, styleKey) => (props) => ({
-    [styleKey]: props[propKey],
+  const mapPropToKeyFunctor = (propKey, key) => (props) => ({
+    [key]: props[propKey],
   });
   it('should produce a valid component', () => {
-    const Compo = compose({ background: 'blue' })({ children: 'boo' }, 'p');
+    const Compo = compose({ background: 'blue' }, { children: 'boo' })('p');
     const doc = renderInto(Compo);
     const para = findTag(doc, 'p');
-    expect(para.style.background).toEqual('blue');
+    expect(para.props.background).toEqual('blue');
   });
 
   it('should pass fed props into style functors', () => {
-    const Compo = compose({ background: 'blue' }, mapPropToStyleFunctor('strength', 'fontSize')
-      )({ strength: '400px' }, 'p');
+    const Compo = compose({ background: 'blue', strength: '400px' }, mapPropToKeyFunctor('strength', 'fontSize'))('p');
     const doc = renderInto(() => <Compo style={{ color: 'white' }} />);
     const para = findTag(doc, 'p');
-    expect(para.style.background).toEqual('blue');
-    expect(para.style.color).toEqual('whiter');
-    expect(para.style.fontSize).toEqual('400px');
+    expect(para.props.background).toEqual('blue');
+    expect(para.style.color).toEqual('white');
+    expect(para.props.fontSize).toEqual('400px');
   });
 });

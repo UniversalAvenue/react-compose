@@ -15,8 +15,13 @@ const defaultContextTypes = () => ({});
 export const exposeContextTypes = configurable('exposeContextTypes', defaultContextTypes, () => [ PropTypes ]);
 
 const merge = arr => _.assign.apply(_, [ {}, ...arr ]);
-const defaultComposeComponent = (Component, styles, props) => {
-  return <Component style={merge(styles)} {...props}/>;
+const defaultComposeComponent = (Component, props) => {
+  const {
+    styles = [],
+    style = {},
+    ...rest,
+  } = props;
+  return <Component style={merge([style].concat(styles))} {...rest}/>;
 };
 export const composeComponent = configurable('composeComponent', defaultComposeComponent);
 
