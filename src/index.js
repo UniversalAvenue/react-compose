@@ -1,39 +1,28 @@
 import _ from 'lodash';
 
-import { parseSuperProps, composeComponent, exposeContextTypes } from './config';
+import { composeComponent, exposeContextTypes, renderChild } from './config';
 
 /**
- * aggregates a set of stylers into a constant part + a dynamic part
+ * aggregates a set of functions/objects into a constant part + a dynamic part
  **/
 
 const mergeObjArr = (arr) => {
-  return _.assign.apply(_, [ {}, ...arr ]);
+  const base = _.assign.apply(_, [ {}, ...arr ]);
+  const styles = _.flatten(_.compact(_.map(arr, 'styles')));
+  if (styles.length > 1) {
+    base.styles = styles;
+  }
+  return base;
 };
 
-export const compileStylers = (...stylers) => {
-  const flattened = _.compact(_.flattenDeep(stylers));
+export const optimize = (...propers) => {
+  const flattened = _.compact(_.flattenDeep(propers));
   const constantStyles = _.takeWhile(flattened, st => !_.isFunction(st)) || [];
   const dynamic = _.slice(flattened, constantStyles.length, flattened.length) || [];
   const constant = mergeObjArr(constantStyles);
   return {
     constant,
     dynamic,
-  };
-};
-
-/**
- * aggregates a set of propers into a constant part + a dynamic part + Component
- * The component is always the last argument into the function
- **/
-
-export const compilePropers = (...args) => {
-  const Component = _.last(args);
-  const propers = _.take(args, args.length - 1) || [];
-  const groupedPropers = _.groupBy(propers, p => _.isFunction(p));
-  return {
-    constant: mergeObjArr(groupedPropers.false || []),
-    dynamic: groupedPropers.true || [],
-    Component,
   };
 };
 
@@ -55,19 +44,48 @@ export const applyFunctor = (functor, ...args) => {
   return functor;
 };
 
-export const compose = (...stylers) => (...propers) => {
-  const cs = compileStylers.apply(null, stylers);
-  const ps = compilePropers.apply(null, propers);
+export const compose = (...propers) => {
+  const ps = optimize(propers);
 
-  const ComposedComponent = (props, context) => {
-    const {
-      styles = [],
-      superProps = {},
-    } = parseSuperProps(props);
-    const _props = mergeObjArr([ ps.constant, ...applyFunctor(ps.dynamic, superProps, context), ...superProps ]);
-    const _styles = [ cs.constant, ...applyFunctor(cs.dynamic, _props, context), ...styles ];
-    return composeComponent(ps.Component, _styles, _props);
+  return Component => {
+    const ComposedComponent = (props, context) => {
+      const base = { ...props, ...ps.constant };
+      const _props = mergeObjArr([ base, ...applyFunctor(ps.dynamic, base, context) ]);
+      return composeComponent(Component, _props);
+    };
+    ComposedComponent.contextTypes = exposeContextTypes();
+    return ComposedComponent;
   };
-  ComposedComponent.contextTypes = exposeContextTypes();
-  return ComposedComponent;
+};
+
+export const styles = (...stylers) => {
+  const {
+    constant,
+    dynamic,
+  } = optimize(stylers);
+
+  // If all constants, return a constant proper
+  if (dynamic.length === 0) {
+    return {
+      styles: constant,
+    };
+  }
+
+  return (props, context) => {
+    const upstream = props.styles || [];
+    const base = [ ...upstream, constant];
+    const applied = applyFunctor(dynamic, { ...props, styles: base }, context);
+    const _styles = [ ...base, ...applied ];
+    return {
+      styles: _styles,
+    };
+  };
+};
+
+export const children = (...childers) => {
+  return (props) => {
+    return {
+      children: _.map(childers, renderChild(props)),
+    };
+  };
 };
