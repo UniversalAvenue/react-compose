@@ -2,7 +2,6 @@
   "name": "react-compose",
   "description": "Compose react components with a functional api",
   "main": "lib/index.js",
-  "version": "0.0.0-semantic-release",
   "scripts": {
     "clean": "./node_modules/rimraf/bin.js lib",
     "test": "npm run build && ./node_modules/jest-cli/bin/jest.js",
