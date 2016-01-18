@@ -2,13 +2,15 @@ jest.autoMockOff();
 
 const _ = require('lodash');
 
-const compilePropers = require('../index').compilePropers;
+const optimize = require('../index').optimize;
 const applyFunctor = require('../index').applyFunctor;
 const compose = require('../index').compose;
+const styles = require('../index').styles;
+const children = require('../index').children;
 
-describe('compilePropers', () => {
+describe('optimize', () => {
   it('should merge propers', () => {
-    const res = compilePropers({
+    const res = optimize({
       propA: 'alpha',
     }, {
       propB: 2,
@@ -20,6 +22,18 @@ describe('compilePropers', () => {
       propB: 2,
     });
     expect(res.dynamic.length).toEqual(2);
+  });
+  it('should merge propers ignore constants after dynamics', () => {
+    const res = optimize({
+      propA: 'alpha',
+    }, () => ({ width: 400 }),
+    { propB: 2 },
+    () => ({ width: 400 })
+    );
+    expect(res.constant).toEqual({
+      propA: 'alpha',
+    });
+    expect(res.dynamic.length).toEqual(3);
   });
 });
 
@@ -92,5 +106,76 @@ describe('Compose', () => {
     expect(para.props.background).toEqual('blue');
     expect(para.style.color).toEqual('white');
     expect(para.props.fontSize).toEqual('400px');
+  });
+});
+
+describe('Styles', () => {
+  const pToK = (propKey, key) => (props) => ({
+    [key]: props[propKey],
+  });
+  it('should produce a valid component', () => {
+    const Compo = compose(styles({ background: 'blue' }, { color: 'white' }))('p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'p');
+    expect(para.style.background).toEqual('blue');
+    expect(para.style.color).toEqual('white');
+  });
+  it('should produce a valid component with two separate styles', () => {
+    const Compo = compose(styles({ background: 'blue' }), styles({ color: 'white' }))('p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'p');
+    expect(para.style.background).toEqual('blue');
+    expect(para.style.color).toEqual('white');
+  });
+  it('should produce a valid component with two dynamic stylers', () => {
+    const Compo = compose({ strength: 5, weight: 'normal' },
+      styles(pToK('strength', 'fontSize'), pToK('weight', 'fontWeight'))
+    )('p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'p');
+    expect(para.style.fontSize).toEqual('5px');
+    expect(para.style.fontWeight).toEqual('normal');
+  });
+  it('should produce a valid component with composite dynamic stylers', () => {
+    const fontStyle = {
+      fontSize: '5px',
+      fontWeight: 'normal',
+    };
+    const colorStyle = {
+      color: 'blue',
+      backgroundColor: 'white',
+    };
+    const compositeStyle = () => [ fontStyle, colorStyle ];
+    const Compo = compose(
+      styles(compositeStyle)
+    )('p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'p');
+    expect(para.style.fontSize).toEqual('5px');
+    expect(para.style.fontWeight).toEqual('normal');
+  });
+  it('should produce a valid component with composite multilayer dynamic stylers', () => {
+    const fontStyle = pToK('strength', 'fontSize');
+    const colorStyle = {
+      color: 'blue',
+      backgroundColor: 'white',
+    };
+    const compositeStyle = () => [ fontStyle, colorStyle ];
+    const Compo = compose({ strength: '5' },
+      styles(compositeStyle)
+    )('p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'p');
+    expect(para.style.fontSize).toEqual('5px');
+  });
+});
+
+describe('Children', () => {
+  it('should produce a valid component', () => {
+    const Alpha = props => <span>{'The cat is ' + props.feeling}</span>;
+    const Compo = compose({ feeling: 'angry' }, children(Alpha))('p');
+    const doc = renderInto(Compo);
+    const para = findTag(doc, 'span');
+    expect(para.innerHTML).toEqual('The cat is angry');
   });
 });
