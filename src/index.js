@@ -5,6 +5,7 @@ import { composeComponent, exposeContextTypes, renderChild } from './config';
 /**
  * aggregates a set of functions/objects into a constant part + a dynamic part
  *
+ *
  **/
 
 const mergeObjArr = (arr) => {
