@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { default as combineNames } from 'classnames';
 
 import { composeComponent, exposeContextTypes, renderChild } from './config';
 
@@ -91,3 +92,31 @@ export const children = (...childers) => {
     };
   };
 };
+
+function handleUpstreamClassName(name) {
+  if (!name) {
+    return {};
+  }
+  if (_.isString(name)) {
+    return {
+      [name]: true,
+    };
+  }
+  return name;
+}
+
+function arrayToClassNames(arr) {
+  return _.reduce(arr, (sum, item) =>
+    _.isString(item) ?
+      { ...sum, [item]: true } :
+      { ...sum, ...item },
+  {});
+}
+
+export const classNames = (...names) =>
+  (props, context) => ({
+    className: combineNames({
+      ...arrayToClassNames(applyFunctor(names, props, context)),
+      ...handleUpstreamClassName(props.className),
+    }),
+  })

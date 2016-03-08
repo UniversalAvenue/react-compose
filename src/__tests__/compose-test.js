@@ -7,6 +7,7 @@ const applyFunctor = require('../index').applyFunctor;
 const compose = require('../index').compose;
 const styles = require('../index').styles;
 const children = require('../index').children;
+const classNames = require('../index').classNames;
 
 describe('optimize', () => {
   it('should merge propers', () => {
@@ -177,5 +178,31 @@ describe('Children', () => {
     const doc = renderInto(Compo);
     const para = findTag(doc, 'span');
     expect(para.innerHTML).toEqual('The cat is angry');
+  });
+});
+
+describe('classNames', () => {
+  it('should produce a correct className', () => {
+    const result = classNames('btn', 'btn-pressed')({});
+    expect(result.className).toEqual('btn btn-pressed');
+  });
+  it('should handle classNames propers', () => {
+    const result = classNames('btn', ({ pressed }) => pressed && 'btn-pressed')({
+      pressed: true,
+    });
+    expect(result.className).toEqual('btn btn-pressed');
+  });
+  it('should handle falsy classNames propers', () => {
+    const result = classNames('btn', ({ pressed }) => pressed && 'btn-pressed')({
+      pressed: false,
+    });
+    expect(result.className).toEqual('btn');
+  });
+  it('should append with input classNames', () => {
+    const result = classNames('btn', ({ pressed }) => pressed && 'btn-pressed')({
+      pressed: false,
+      className: 'alpha',
+    });
+    expect(result.className).toEqual('btn alpha');
   });
 });

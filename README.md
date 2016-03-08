@@ -161,4 +161,15 @@ Composing complex children values
     //      <p>Height: 150</p>
     //    </div>
 
+Composing classNames, using the awesome [https://github.com/JedWatson/classnames](classnames) lib
 
+    import { compose, classNames } from 'react-compose';
+
+    const btnClassNames = classNames('btn',
+      ({ pressed }) => pressed && 'btn-pressed',
+      ({ hover }) => hover && 'btn-hover');
+     
+    const Button = compose(btnClassNames)('button');
+
+    // pressed: true => <button className="btn btn-pressed" />
+    // pressed: false, hover: true => <button className="btn btn-hover" />
