@@ -1,5 +1,81 @@
 # react-compose
-Compose React components with a functional api
+
+**React-compose** allows you to encapsulate component logic into smaller,
+reusable functions, which in turn can be combined back into component. The
+fundamental idea is that React components has a way of becoming bloated with,
+often repeated, logic. This lib provides you with a set of tools to avoid that.
+
+The encapsulated pieces will be easily testable, either because they are
+constant or since their functionality has a more narrow scope than a
+corresponding component would have. 
+
+The other aspect of **react-compose** is based upon the fact that whenever you
+create a React component, you also create an api for it as well. It is
+essential, for any large scale project that this api is well formed and consistent
+across the application. Most components should also be extendable too, which is
+why, significant care is needed to make sure that each component doesn't break
+these rules.
+
+Let's show a simple example of extendablity:
+
+    const ButtonComponent = props => {
+      const {
+        onClick,
+        label,
+      } = props;
+      return <button onClick={onClick}>{label}</button>;
+    };
+
+Now if a developer would like to manipulate the style of `ButtonComponent` from
+the outside, it would have to be changed accordingly:
+
+    const ButtonComponent = props => {
+      const {
+        onClick,
+        style,
+        label,
+      } = props;
+      return <button onClick={onClick} style={style}>{label}</button>;
+    };
+
+On the other hand, if all props should be passed down to the `button` element,
+the following is much more useful:
+
+    const ButtonComponent = props => {
+      const {
+        label,
+      } = props;
+      return <button {...props}>{label}</button>;
+    };
+
+With **react-compose**, the above would be written as:
+
+    const labelToChildren = ({ label }) => ({ children: label });
+
+    const ButtonComponent = compose(labelToChildren)('button');
+
+Leaving much less room for breaking the rules of extendability and resuability.
+The CustomComponent should essentially work as you would expect that the basic
+html elements does, `ButtonComponent` ~ `button`, beyond of course the added
+behavior. 
+
+As an extra bonus, it is also more straight forward to test the encapsulated
+behavior rather than the component as a whole.
+
+    describe('labelToChildren', () => {
+      it('should pass whatever input label as children', () => {
+        expect(labelToChildren({ label: 'string' }).children).toEqual('string');
+      });
+    });
+
+Finally, the heart of **react-compose**, is finding those elementary patterns
+that are present in your application. In this case, we can create a nice higher
+order function for the `labelToChildren` logic.
+
+    const mixProp = (from, to) => props => ({ [to]: props[from] });
+    const labelToChildren = mixProp('label', 'children');
+
+## API
 
 Example api usage:
 
