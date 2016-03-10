@@ -1,4 +1,4 @@
-# react-compose
+![React Compose](https://s3.amazonaws.com/f.cl.ly/items/1o3j191n3I3c3I1u3o28/logo.png)
 
 **React-compose** allows you to encapsulate component logic into smaller,
 reusable functions, which in turn can be combined back into component. The
@@ -18,42 +18,48 @@ these rules.
 
 Let's show a simple example of extendablity:
 
-    const ButtonComponent = props => {
-      const {
-        onClick,
-        label,
-      } = props;
-      return <button onClick={onClick}>{label}</button>;
-    };
+```javascript
+const ButtonComponent = props => {
+  const {
+    onClick,
+    label,
+  } = props;
+  return <button onClick={onClick}>{label}</button>;
+};
+```
 
 Now if a developer would like to manipulate the style of `ButtonComponent` from
 the outside, it would have to be changed accordingly:
 
-    const ButtonComponent = props => {
-      const {
-        onClick,
-        style,
-        label,
-      } = props;
-      return <button onClick={onClick} style={style}>{label}</button>;
-    };
+```javascript
+const ButtonComponent = props => {
+  const {
+    onClick,
+    style,
+    label,
+  } = props;
+  return <button onClick={onClick} style={style}>{label}</button>;
+};
+```
 
 On the other hand, if all props should be passed down to the `button` element,
 the following is much more useful:
 
-    const ButtonComponent = props => {
-      const {
-        label,
-      } = props;
-      return <button {...props}>{label}</button>;
-    };
-
+```javascript
+const ButtonComponent = props => {
+  const {
+    label,
+  } = props;
+  return <button {...props}>{label}</button>;
+};
+```
 With **react-compose**, the above would be written as:
 
-    const labelToChildren = ({ label }) => ({ children: label });
+```javascript
+const labelToChildren = ({ label }) => ({ children: label });
 
-    const ButtonComponent = compose(labelToChildren)('button');
-
+const ButtonComponent = compose(labelToChildren)('button');
+```
 Leaving much less room for breaking the rules of extendability and resuability.
 The CustomComponent should essentially work as you would expect that the basic
 html elements does, `ButtonComponent` ~ `button`, beyond of course the added
@@ -62,114 +68,126 @@ behavior.
 As an extra bonus, it is also more straight forward to test the encapsulated
 behavior rather than the component as a whole.
 
-    describe('labelToChildren', () => {
-      it('should pass whatever input label as children', () => {
-        expect(labelToChildren({ label: 'string' }).children).toEqual('string');
-      });
-    });
+```javascript
+describe('labelToChildren', () => {
+  it('should pass whatever input label as children', () => {
+    expect(labelToChildren({ label: 'string' }).children).toEqual('string');
+  });
+});
+```
 
 Finally, the heart of **react-compose**, is finding those elementary patterns
 that are present in your application. In this case, we can create a nice higher
 order function for the `labelToChildren` logic.
 
-    const mixProp = (from, to) => props => ({ [to]: props[from] });
-    const labelToChildren = mixProp('label', 'children');
-
+```javascript
+const mixProp = (from, to) => props => ({ [to]: props[from] });
+const labelToChildren = mixProp('label', 'children');
+```
 ## API
 
 Example api usage:
 
-    import { compose } from 'react-compose';
+```javascript
+import { compose } from 'react-compose';
 
-    const constantProper = {
-      age: 15,
-    };
+const constantProper = {
+  age: 15,
+};
 
-    const dynamicProper = props => {
-      return {
-        children: `The cat is ${props.age} years old`,
-      };
-    };
+const dynamicProper = props => {
+  return {
+    children: `The cat is ${props.age} years old`,
+  };
+};
 
-    const Cat = compose(constantProper, dynamicProper)('p');
+const Cat = compose(constantProper, dynamicProper)('p');
 
-    // => <p>The cat is 15 years old</p>;
+// => <p>The cat is 15 years old</p>;
+```
 
 Specialized style composing
 
-    import { compose, styles } from 'react-compose';
-    
-    const constantStyle = {
-      background: 'red',
-    };
-    const dynamicStyle = ({ isActive }) => (!isActive && {
-      display: 'none',
-    });
-    
-    const Component = compose(styles(constantStyle, dynamicStyle))('p');
-    
-    return (props) => {
-      return <Component isActive={false}>Some text</Component>;
-    };
+```javascript
+import { compose, styles } from 'react-compose';
+
+const constantStyle = {
+  background: 'red',
+};
+const dynamicStyle = ({ isActive }) => (!isActive && {
+  display: 'none',
+});
+
+const Component = compose(styles(constantStyle, dynamicStyle))('p');
+
+return (props) => {
+  return <Component isActive={false}>Some text</Component>;
+};
+```
 
 Stacking custom components
 
-    import { compose } from 'react-compose';
+```javascript
+import { compose } from 'react-compose';
 
-    const Cat = props => {
-      return <p>The cat is {props.age} years old</p>;
-    };
+const Cat = props => {
+  return <p>The cat is {props.age} years old</p>;
+};
 
-    const injectAge = {
-      age: 5,
-    };
+const injectAge = {
+  age: 5,
+};
 
-    const Composed = compose(injectAge)(Cat);
+const Composed = compose(injectAge)(Cat);
 
-    // => <p>The cat is 5 years old</p>
-
+// => <p>The cat is 5 years old</p>
+```
 
 Composing complex children values
 
-    import { compose, children } from 'react-compose';
+```javascript
+import { compose, children } from 'react-compose';
 
-    const AgeInfo = props => {
-      return <p>Age: {props.age} years</p>;
-    };
+const AgeInfo = props => {
+  return <p>Age: {props.age} years</p>;
+};
 
-    const LengthInfo = props => {
-      return <p>Length: {props.length} cm</p>;
-    };
+const LengthInfo = props => {
+  return <p>Length: {props.length} cm</p>;
+};
 
-    const HeightInfo = props => {
-      return <p>Height: {props.height} cm</p>;
-    };
+const HeightInfo = props => {
+  return <p>Height: {props.height} cm</p>;
+};
 
-    const Info = compose(children(AgeInfo, LengthInfo, HeightInfo))('div');
+const Info = compose(children(AgeInfo, LengthInfo, HeightInfo))('div');
 
-    const dogData = {
-      age: 5,
-      length: 250,
-      height: 150,
-    };
+const dogData = {
+  age: 5,
+  length: 250,
+  height: 150,
+};
 
-    const DogInfo = compose(dogData)(Info);
+const DogInfo = compose(dogData)(Info);
 
-    // => <div>
-    //      <p>Age: 5</p>
-    //      <p>Length: 250</p>
-    //      <p>Height: 150</p>
-    //    </div>
+// => <div>
+//      <p>Age: 5</p>
+//      <p>Length: 250</p>
+//      <p>Height: 150</p>
+//    </div>
+```
 
 Composing classNames, using the awesome [https://github.com/JedWatson/classnames](classnames) lib
 
-    import { compose, classNames } from 'react-compose';
+```javascript
+import { compose, classNames } from 'react-compose';
 
-    const btnClassNames = classNames('btn',
-      ({ pressed }) => pressed && 'btn-pressed',
-      ({ hover }) => hover && 'btn-hover');
-     
-    const Button = compose(btnClassNames)('button');
+const btnClassNames = classNames('btn',
+  ({ pressed }) => pressed && 'btn-pressed',
+  ({ hover }) => hover && 'btn-hover');
+ 
+const Button = compose(btnClassNames)('button');
 
-    // pressed: true => <button className="btn btn-pressed" />
-    // pressed: false, hover: true => <button className="btn btn-hover" />
+// pressed: true => <button className="btn btn-pressed" />
+// pressed: false, hover: true => <button className="btn btn-hover" />
+```
