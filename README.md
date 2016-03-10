@@ -1,4 +1,4 @@
-![React Compose](https://s3.amazonaws.com/f.cl.ly/items/1o3j191n3I3c3I1u3o28/logo.png)
+![React Compose](https://s3.amazonaws.com/f.cl.ly/items/1y000n0q2a2n0L2Y243S/react-compose-logo@2x.png)
 
 **React-compose** allows you to encapsulate component logic into smaller,
 reusable functions, which in turn can be combined back into component. The
