@@ -1,4 +1,6 @@
 ![React Compose](https://s3.amazonaws.com/f.cl.ly/items/1y000n0q2a2n0L2Y243S/react-compose-logo@2x.png)
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![Circle CI](https://circleci.com/gh/UniversalAvenue/react-compose/tree/master.svg?style=svg)](https://circleci.com/gh/UniversalAvenue/react-compose/tree/master)
 
 **React-compose** allows you to encapsulate component logic into smaller,
 reusable functions, which in turn can be combined back into component. The
