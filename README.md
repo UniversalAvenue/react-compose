@@ -84,6 +84,15 @@ order function for the `labelToChildren` logic.
 const mixProp = (from, to) => props => ({ [to]: props[from] });
 const labelToChildren = mixProp('label', 'children');
 ```
+
+## Installation
+
+Install package, and check that you are using a matching version of React (^0.14)
+
+```bash
+npm install -s react-compose
+```
+
 ## API
 
 Example api usage:
