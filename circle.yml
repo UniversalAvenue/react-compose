@@ -1,6 +1,9 @@
 machine:
   node:
     version: 4.2.6
+dependencies:
+  override:
+    - npm install
 test:
   post:
     - npm run semantic-release || true
