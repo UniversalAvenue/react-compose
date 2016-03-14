@@ -188,7 +188,7 @@ const DogInfo = compose(dogData)(Info);
 //    </div>
 ```
 
-Composing classNames, using the awesome [https://github.com/JedWatson/classnames](classnames) lib
+Composing classNames, using the awesome [classnames](https://github.com/JedWatson/classnames) lib
 
 ```javascript
 import { compose, classNames } from 'react-compose';
