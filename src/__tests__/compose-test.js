@@ -1,6 +1,7 @@
 jest.autoMockOff();
 
 const _ = require('lodash');
+const { shallow } = require('enzyme');
 
 const optimize = require('../index').optimize;
 const applyFunctor = require('../index').applyFunctor;
@@ -95,17 +96,17 @@ describe('Compose', () => {
   });
   it('should produce a valid component', () => {
     const Compo = compose({ background: 'blue' }, { children: 'boo' })('p');
-    const doc = renderInto(Compo);
-    const para = findTag(doc, 'p');
-    expect(para.props.background).toEqual('blue');
+    const wrapper = shallow(<Compo />);
+    const para = wrapper.find('p');
+    expect(para.node.props.background).toEqual('blue');
   });
 
   it('should pass fed props into style functors', () => {
     const Compo = compose({ background: 'blue', strength: '400px' }, mapPropToKeyFunctor('strength', 'fontSize'))('p');
-    const doc = renderInto(() => <Compo style={{ color: 'white' }} />);
-    const para = findTag(doc, 'p');
+    const wrapper = shallow(<Compo style={{ color: 'white' }}/>);
+    const para = wrapper.find('p').node;
     expect(para.props.background).toEqual('blue');
-    expect(para.style.color).toEqual('white');
+    expect(para.props.style.color).toEqual('white');
     expect(para.props.fontSize).toEqual('400px');
   });
 });
@@ -129,7 +130,7 @@ describe('Styles', () => {
     expect(para.style.color).toEqual('white');
   });
   it('should produce a valid component with two dynamic stylers', () => {
-    const Compo = compose({ strength: 5, weight: 'normal' },
+    const Compo = compose({ strength: '5px', weight: 'normal' },
       styles(pToK('strength', 'fontSize'), pToK('weight', 'fontWeight'))
     )('p');
     const doc = renderInto(Compo);
@@ -162,7 +163,7 @@ describe('Styles', () => {
       backgroundColor: 'white',
     };
     const compositeStyle = () => [ fontStyle, colorStyle ];
-    const Compo = compose({ strength: '5' },
+    const Compo = compose({ strength: '5px' },
       styles(compositeStyle)
     )('p');
     const doc = renderInto(Compo);
