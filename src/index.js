@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { default as combineNames } from 'classnames';
 
 import { composeComponent, exposeContextTypes, renderChild } from './config';
+import getDisplayName from './getDisplayName';
 
 /**
  * aggregates a set of functions/objects into a constant part + a dynamic part
@@ -50,13 +51,6 @@ export const applyFunctor = (functor, ...args) => {
 function mergePropers(a, b) {
   return optimize([a.constant, ...a.dynamic, b.constant, ...b.dynamic]);
 }
-
-// https://github.com/jurassix/react-display-name/blob/master/src/getDisplayName.js
-const getDisplayName = Component => (
-  Component.displayName ||
-  Component.name ||
-  (typeof Component === 'string' ? Component : 'Component')
-);
 
 export const compose = (...propers) => {
   const optimizedPropers = optimize(propers);
