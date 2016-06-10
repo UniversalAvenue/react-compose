@@ -146,10 +146,15 @@ function arrayToClassNames(arr) {
   {});
 }
 
-export const classNames = (...names) =>
-  (props, context) => ({
+export function classNames(...names) {
+  return (props, context) => ({
     className: combineNames({
       ...arrayToClassNames(applyFunctor(names, props, context)),
       ...handleUpstreamClassName(props.className),
     }),
-  })
+  });
+}
+
+export function mapProp(property, fn, defaultValue) {
+  return props => ({ [property]: fn(props[property] || defaultValue) });
+}

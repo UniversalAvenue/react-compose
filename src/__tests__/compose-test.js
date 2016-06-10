@@ -9,6 +9,7 @@ const compose = require('../index').compose;
 const styles = require('../index').styles;
 const children = require('../index').children;
 const classNames = require('../index').classNames;
+const mapProp = require('../index').mapProp;
 
 describe('optimize', () => {
   it('should merge propers', () => {
@@ -238,5 +239,16 @@ describe('Nesting', () => {
     const Level1 = compose({ background: 'red' })(Root);
     const Level2 = compose({ color: 'blue' })(Level1);
     expect(Level2.displayName).toEqual('composed(Root)');
+  });
+});
+
+describe('mapProp', () => {
+  it('should transform input value', () => {
+    function Root(props) {
+      return <p {...props} />;
+    }
+    const Comped = compose(mapProp('x', x => x * 2))(Root);
+    const p = shallow(<Comped x={5}/>).node;
+    expect(p.props.x).toEqual(10);
   });
 });
