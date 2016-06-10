@@ -47,18 +47,51 @@ export const applyFunctor = (functor, ...args) => {
   return functor;
 };
 
-export const compose = (...propers) => {
-  const ps = optimize(propers);
+function mergePropers(a, b) {
+  return optimize([a.constant, ...a.dynamic, b.constant, ...b.dynamic]);
+}
 
-  return Component => {
+// https://github.com/jurassix/react-display-name/blob/master/src/getDisplayName.js
+const getDisplayName = Component => (
+  Component.displayName ||
+  Component.name ||
+  (typeof Component === 'string' ? Component : 'Component')
+);
+
+export const compose = (...propers) => {
+  const optimizedPropers = optimize(propers);
+
+  function compose(Component, ps) {
     const ComposedComponent = (props, context) => {
       const base = { ...props, ...ps.constant };
       const _props = mergeObjArr([ base, ...applyFunctor(ps.dynamic, base, context) ]);
       return composeComponent(Component, _props);
     };
     ComposedComponent.contextTypes = exposeContextTypes();
+    ComposedComponent.displayName = `composed(${getDisplayName(Component)})`;
     return ComposedComponent;
-  };
+  }
+
+  function mergeComposed(Component) {
+    let Target = Component;
+    let ps = optimizedPropers;
+    if (Component && Component.__composedBy) {
+      const {
+        composers,
+        Parent,
+      } = Component.__composedBy;
+      ps = mergePropers(composers, optimizedPropers);
+      Target = Parent;
+    }
+    const Result = compose(Target, ps);
+    Result.__composedBy = {
+      composers: optimizedPropers,
+      Parent: Component,
+    };
+    return Result;
+  }
+
+  return mergeComposed;
 };
 
 export const styles = (...stylers) => {

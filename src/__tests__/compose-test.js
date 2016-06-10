@@ -207,3 +207,36 @@ describe('classNames', () => {
     expect(result.className).toEqual('btn alpha');
   });
 });
+
+describe('Nesting', () => {
+  it('should optimize nested compose calls', () => {
+    const Root = props => <p {...props}>root</p>;
+    const Level1 = compose({ background: 'red' })(Root);
+    const Level2 = compose({ color: 'blue' })(Level1);
+    const wrapper = shallow(<Level2 />);
+    const para = wrapper.shallow().find('p').node;
+    expect(para.props.background).toEqual('red');
+    expect(para.props.color).toEqual('blue');
+  });
+  it('should optimize nested compose calls and dynamics should be correct', () => {
+    const Root = props => <p {...props}>root</p>;
+    const Level1 = compose({ background: 'red' }, () => ({ color: 'red' }))(Root);
+    const Level2 = compose({ color: 'blue' }, ({ background }) =>
+      ({
+        background: background == 'red' ? 'brown' : 'blue',
+      })
+    )(Level1);
+    const wrapper = shallow(<Level2 />);
+    const para = wrapper.shallow().find('p').node;
+    expect(para.props.background).toEqual('brown');
+    expect(para.props.color).toEqual('blue');
+  });
+  it('should produce a great display name', () => {
+    function Root() {
+      return <p>Names</p>;
+    }
+    const Level1 = compose({ background: 'red' })(Root);
+    const Level2 = compose({ color: 'blue' })(Level1);
+    expect(Level2.displayName).toEqual('composed(Root)');
+  });
+});
