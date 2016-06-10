@@ -10,7 +10,7 @@ import { composeComponent, exposeContextTypes, renderChild } from './config';
  **/
 
 const mergeObjArr = (arr) => {
-  const base = _.assign.apply(_, [ {}, ...arr ]);
+  const base = _.assign.apply(_, [{}, ...arr]);
   const styles = _.flatten(_.compact(_.map(arr, 'styles')));
   if (styles.length > 1) {
     base.styles = styles;
@@ -37,7 +37,7 @@ const flatMap = (arr, fn) => {
 };
 
 export const applyFunctor = (functor, ...args) => {
-  const reapply = f => applyFunctor.apply(null, [ f, ...args ]);
+  const reapply = f => applyFunctor.apply(null, [f, ...args]);
   if (_.isArray(functor)) {
     return flatMap(functor, reapply);
   }
@@ -61,11 +61,11 @@ const getDisplayName = Component => (
 export const compose = (...propers) => {
   const optimizedPropers = optimize(propers);
 
-  function compose(Component, ps) {
+  function doCompose(Component, ps) {
     const ComposedComponent = (props, context) => {
       const base = { ...props, ...ps.constant };
-      const _props = mergeObjArr([ base, ...applyFunctor(ps.dynamic, base, context) ]);
-      return composeComponent(Component, _props);
+      const finalProps = mergeObjArr([base, ...applyFunctor(ps.dynamic, base, context)]);
+      return composeComponent(Component, finalProps);
     };
     ComposedComponent.contextTypes = exposeContextTypes();
     ComposedComponent.displayName = `composed(${getDisplayName(Component)})`;
@@ -75,16 +75,16 @@ export const compose = (...propers) => {
   function mergeComposed(Component) {
     let Target = Component;
     let ps = optimizedPropers;
-    if (Component && Component.__composedBy) {
+    if (Component && Component.composedBy) {
       const {
         composers,
         Parent,
-      } = Component.__composedBy;
+      } = Component.composedBy;
       ps = mergePropers(composers, optimizedPropers);
       Target = Parent;
     }
-    const Result = compose(Target, ps);
-    Result.__composedBy = {
+    const Result = doCompose(Target, ps);
+    Result.composedBy = {
       composers: optimizedPropers,
       Parent: Component,
     };
@@ -109,22 +109,20 @@ export const styles = (...stylers) => {
 
   return (props, context) => {
     const upstream = props.styles || [];
-    const base = [ ...upstream, constant];
+    const base = [...upstream, constant];
     const applied = applyFunctor(dynamic, { ...props, styles: base }, context);
-    const _styles = [ ...base, ...applied ];
+    const finalStyles = [...base, ...applied];
     return {
-      styles: _styles,
+      styles: finalStyles,
     };
   };
 };
 
-export const children = (...childers) => {
-  return (props) => {
-    return {
+export const children = (...childers) =>
+  (props) =>
+    ({
       children: _.map(childers, renderChild(props)),
-    };
-  };
-};
+    });
 
 function handleUpstreamClassName(name) {
   if (!name) {
@@ -140,9 +138,9 @@ function handleUpstreamClassName(name) {
 
 function arrayToClassNames(arr) {
   return _.reduce(arr, (sum, item) =>
-    _.isString(item) ?
+    (_.isString(item) ?
       { ...sum, [item]: true } :
-      { ...sum, ...item },
+      { ...sum, ...item }),
   {});
 }
 
