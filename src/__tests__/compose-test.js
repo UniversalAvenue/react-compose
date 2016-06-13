@@ -234,3 +234,20 @@ describe('mapProp', () => {
     expect(p.props.x).toEqual(10);
   });
 });
+
+describe('composing', () => {
+  it('chains properly', () => {
+    const f0 = {
+      a: 7,
+    };
+    function f1() {
+      return { b: 5 };
+    }
+    function f2({ a, b }) {
+      return { c: a + b };
+    }
+    const Comped = compose(f0, f1, f2)('p');
+    const p = shallow(<Comped />).node;
+    expect(p.props.c).toEqual(12);
+  });
+});

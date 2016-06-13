@@ -58,7 +58,9 @@ export const compose = (...propers) => {
   function doCompose(Component, ps) {
     const ComposedComponent = (props, context) => {
       const base = { ...props, ...ps.constant };
-      const finalProps = mergeObjArr([base, ...applyFunctor(ps.dynamic, base, context)]);
+      const finalProps = ps.dynamic.reduce((obj, fn) =>
+        Object.assign({}, obj, applyFunctor(fn, obj, context)),
+        base);
       return composeComponent(Component, finalProps);
     };
     ComposedComponent.contextTypes = exposeContextTypes();
