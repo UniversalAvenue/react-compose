@@ -201,18 +201,18 @@ describe('Nesting', () => {
     expect(para.props.background).toEqual('red');
     expect(para.props.color).toEqual('blue');
   });
-  it('should optimize nested compose calls and dynamics should be correct', () => {
+  fit('should optimize nested compose calls and dynamics should be correct', () => {
     const Root = props => <p {...props}>root</p>;
     const Level1 = compose({ background: 'red' }, () => ({ color: 'red' }))(Root);
     const Level2 = compose({ color: 'blue' }, ({ background }) =>
       ({
-        background: background === 'red' ? 'brown' : 'blue',
+        background: background === 'red' ? 'blue' : 'brown',
       })
     )(Level1);
     const wrapper = shallow(<Level2 />);
     const para = wrapper.shallow().find('p').node;
-    expect(para.props.background).toEqual('brown');
-    expect(para.props.color).toEqual('blue');
+    expect(para.props.background).toEqual('red');
+    expect(para.props.color).toEqual('red');
   });
   it('should produce a great display name', () => {
     function Root() {
@@ -249,5 +249,42 @@ describe('composing', () => {
     const Comped = compose(f0, f1, f2)('p');
     const p = shallow(<Comped />).node;
     expect(p.props.c).toEqual(12);
+  });
+  it('chains properly while nesting', () => {
+    const f0 = {
+      a: 7,
+    };
+    function f1() {
+      return { b: 5 };
+    }
+    function f2({ a, b }) {
+      return { c: a + b };
+    }
+    function f3() {
+      return { d: 5 };
+    }
+    const C1 = compose(f2)('p');
+    const Comped = compose(f0, f1, f3)(C1);
+    const p = shallow(<Comped />).node;
+    expect(p.props.c).toEqual(12);
+  });
+  it('chains properly while deeply nesting', () => {
+    const f0 = {
+      a: 7,
+    };
+    function f1() {
+      return { b: 5 };
+    }
+    function f2({ a, b }) {
+      return { c: a + b };
+    }
+    function f3({ c }) {
+      return { d: c + 2 };
+    }
+    const C0 = compose(f3)('p');
+    const C1 = compose(f2)(C0);
+    const Comped = compose(f0, f1)(C1);
+    const p = shallow(<Comped />).node;
+    expect(p.props.d).toEqual(14);
   });
 });

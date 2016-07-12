@@ -76,13 +76,13 @@ export const compose = (...propers) => {
         composers,
         Parent,
       } = Component.composedBy;
-      ps = mergePropers(composers, optimizedPropers);
+      ps = mergePropers(optimizedPropers, composers);
       Target = Parent;
     }
     const Result = doCompose(Target, ps);
     Result.composedBy = {
-      composers: optimizedPropers,
-      Parent: Component,
+      composers: ps,
+      Parent: Target,
     };
     return Result;
   }
