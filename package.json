@@ -56,7 +56,8 @@
     "react-dom": "^15.1.0",
     "redux-thunk": "^2.1.0",
     "rimraf": "^2.4.4",
-    "semantic-release": "^4.3.5"
+    "semantic-release": "^4.3.5",
+    "sinon": "^1.17.5"
   },
   "jest": {
     "testPathDirs": [
