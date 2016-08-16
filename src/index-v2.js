@@ -65,3 +65,34 @@ export function compose(...fns) {
     return composed;
   };
 }
+
+export function flatReduce(fn, ...args) {
+  if (_.isFunction(fn)) {
+    return flatReduce.apply(null, [fn.apply(null, args), ...args]);
+  } else if (_.isArray(fn)) {
+    return fn.reduce((sum, foo) =>
+      flatReduce.apply(null, [foo, sum, ...args.slice(1)]),
+      args[0]);
+  }
+  return fn;
+}
+
+/**
+ * extend a named prop with a given prop map
+ **/
+
+export function extend(name, fn) {
+  const wrap = (props, context) => ({
+    ...props,
+    [name]: {
+      ...(props[name] || {}),
+      ...fn(props, context),
+    },
+  });
+  Object.keys(fn).map(key => Object.assign(wrap, { [key]: fn[key] }));
+  return wrap;
+}
+
+export function styles(...args) {
+  return extend('style', (...seconds) => flatReduce.apply(null, [args, ...seconds]));
+}
