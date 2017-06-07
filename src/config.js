@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import React, { PropTypes } from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 
 const plugin = {};
 const functions = {};
@@ -22,7 +23,7 @@ const merge = arr => _.assign.apply(_, [{}, ...arr]);
 const defaultComposeComponent = (Component, {
   styles = [],
   style = {},
-  ...rest,
+  ...rest
 }) => {
   const mergedStyle = merge([style].concat(styles));
   return <Component style={mergedStyle} {...rest} />;
@@ -37,4 +38,3 @@ export const renderChild = configurable('renderChild', defaultRenderChild);
 export {
   plugin,
 };
-

@@ -18,7 +18,7 @@ describe('optimize', () => {
     }, {
       propB: 2,
     }, () => ({ width: 400 }),
-    () => ({ width: 400 })
+    () => ({ width: 400 }),
     );
     expect(res.constant).toEqual({
       propA: 'alpha',
@@ -31,7 +31,7 @@ describe('optimize', () => {
       propA: 'alpha',
     }, () => ({ width: 400 }),
     { propB: 2 },
-    () => ({ width: 400 })
+    () => ({ width: 400 }),
     );
     expect(res.constant).toEqual({
       propA: 'alpha',
@@ -44,7 +44,7 @@ describe('Apply functor', () => {
   const functorCreator = (key, value) => () => ({
     [key]: value,
   });
-  const deepFunctorCreator = (values) => () =>
+  const deepFunctorCreator = values => () =>
     _.map(values, (value, idx) => functorCreator(idx, value));
   it('should apply each functor in order', () => {
     const functors = [
@@ -73,10 +73,12 @@ describe('Apply functor', () => {
   });
 });
 
+const PropTypes = require('prop-types');
+
 const React = require('react');
 
 describe('Compose', () => {
-  const mapPropToKeyFunctor = (propKey, key) => (props) => ({
+  const mapPropToKeyFunctor = (propKey, key) => props => ({
     [key]: props[propKey],
   });
   it('should produce a valid component', () => {
@@ -98,7 +100,7 @@ describe('Compose', () => {
 });
 
 describe('Styles', () => {
-  const pToK = (propKey, key) => (props) => ({
+  const pToK = (propKey, key) => props => ({
     [key]: props[propKey],
   });
   it('should produce a valid component', () => {
@@ -115,7 +117,7 @@ describe('Styles', () => {
   });
   it('should produce a valid component with two dynamic stylers', () => {
     const Compo = compose({ strength: '5px', weight: 'normal' },
-      styles(pToK('strength', 'fontSize'), pToK('weight', 'fontWeight'))
+      styles(pToK('strength', 'fontSize'), pToK('weight', 'fontWeight')),
     )('p');
     const para = shallow(<Compo />).find('p').node;
     expect(para.props.style.fontSize).toEqual('5px');
@@ -132,7 +134,7 @@ describe('Styles', () => {
     };
     const compositeStyle = () => [fontStyle, colorStyle];
     const Compo = compose(
-      styles(compositeStyle)
+      styles(compositeStyle),
     )('p');
     const para = shallow(<Compo />).find('p').node;
     expect(para.props.style.fontSize).toEqual('5px');
@@ -146,7 +148,7 @@ describe('Styles', () => {
     };
     const compositeStyle = () => [fontStyle, colorStyle];
     const Compo = compose({ strength: '5px' },
-      styles(compositeStyle)
+      styles(compositeStyle),
     )('p');
     const para = shallow(<Compo />).find('p').node;
     expect(para.props.style.fontSize).toEqual('5px');
@@ -157,7 +159,7 @@ describe('Children', () => {
   it('should produce a valid component', () => {
     const Alpha = props => <span>{`The cat is ${props.feeling}`}</span>;
     Alpha.propTypes = {
-      feeling: React.PropTypes.string,
+      feeling: PropTypes.string.isRequired,
     };
     const Compo = compose({ feeling: 'angry' }, children(Alpha))('p');
     const para = shallow(<Compo />).childAt(0).shallow().node;
@@ -207,7 +209,7 @@ describe('Nesting', () => {
     const Level2 = compose({ color: 'blue' }, ({ background }) =>
       ({
         background: background === 'red' ? 'blue' : 'brown',
-      })
+      }),
     )(Level1);
     const wrapper = shallow(<Level2 />);
     const para = wrapper.shallow().find('p').node;

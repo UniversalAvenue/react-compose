@@ -35,11 +35,11 @@ function wrapLifeCycle(fn) {
 
 
 export default function connect(reducer,
-    dispatchers,
-    lifeCycle = {},
-    merge = defaultMergeProps,
-    middlewares = []) {
-  return Component => {
+  dispatchers,
+  lifeCycle = {},
+  merge = defaultMergeProps,
+  middlewares = []) {
+  return (Component) => {
     class Connected extends React.Component {
       constructor(props) {
         super(props);

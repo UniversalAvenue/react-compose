@@ -9,7 +9,7 @@ const applyMiddleware = require('../connect').applyMiddleware;
 
 describe('connect', () => {
   it('creates a valid component', () => {
-    const reducer = jest.fn((state) => state);
+    const reducer = jest.fn(state => state);
     const Component = connect(reducer, { onClick: 'doClick' })('button');
     const wrapper = mount(<Component />);
     wrapper.find('button').simulate('click');
@@ -39,7 +39,7 @@ describe('connect', () => {
   });
   it('hides willReceiveProps behaviour', () => {
     const Button = props => <button {...props} />;
-    const reducer = jest.fn((state) => state);
+    const reducer = jest.fn(state => state);
     const Component = connect(reducer, {}, {
       componentWillReceiveProps() {},
     })(Button);

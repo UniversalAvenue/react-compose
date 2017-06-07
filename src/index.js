@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { default as combineNames } from 'classnames';
+import combineNames from 'classnames';
 
 import { composeComponent, exposeContextTypes, renderChild } from './config';
 import getDisplayName from './getDisplayName';
@@ -43,7 +43,7 @@ export const applyFunctor = (functor, ...args) => {
     return flatMap(functor, reapply);
   }
   if (_.isFunction(functor)) {
-    return reapply(functor.apply(null, args));
+    return reapply(functor(...args));
   }
   return functor;
 };
@@ -115,7 +115,7 @@ export const styles = (...stylers) => {
 };
 
 export const children = (...childers) =>
-  (props) =>
+  props =>
     ({
       children: _.map(childers, renderChild(props)),
     });
